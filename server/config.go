@@ -7,41 +7,37 @@ import (
 	"github.com/pkg/errors"
 )
 
-// BuildServerTLSConfig creates a TLS config for a server.
-func BuildServerTLSConfig(ca, cert, key string) (*tls.Config, error) {
-	cfg := tls.Config{}
+// Configuration represents a server TLS configuration.
+type Configuration struct {
 
-	//build server certificate and assign to tls config
-	serverCert, err := buildx509Identity(cert, key)
+	// Authorities defines the trusted certificate authorities
+	Authorities []string `json:"authorities" mapstructure:"authorities" yaml:"authorities"`
+
+	// Certificate defines the server certificate used for TLS connections
+	Certificate string `json:"certificate" mapstructure:"certificate" yaml:"certificate"`
+
+	// Key defines the server key used for TLS connections
+	Key string `json:"key" mapstructure:"key" yaml:"key"`
+}
+
+// Build creates a tls.Config from a Configuration.
+func (c *Configuration) Build() (*tls.Config, error) {
+
+	pool, err := builders.BuildCertificatePool(c.Authorities)
 	if err != nil {
-		return nil, errors.Wrap(err, "error loading certificates")
+		return nil, errors.Wrap(err, "error building certificate authority pool")
 	}
-	cfg.Certificates = serverCert
 
-	//assign client auth to tls config
-	cfg.ClientAuth = tls.RequireAndVerifyClientCert
-
-	//build cert pool and assign to tls config
-	var authorities []string
-	certPool, err := builders.BuildCertificatePool(authorities)
+	serverCert, err := builders.BuildCertificates(c.Certificate, c.Key)
 	if err != nil {
 		return nil, errors.Wrap(err, "error building certificates")
 	}
-	cfg.ClientCAs = certPool
 
-	return &cfg, nil
-}
-
-//build tls certificate with cert and key
-func buildx509Identity(cert string, key string) ([]tls.Certificate, error) {
-	theCert := []tls.Certificate{}
-	certs, err := tls.LoadX509KeyPair(cert, key)
-	if err != nil {
-		return nil, errors.Wrap(err, "error loading certificates")
+	config := &tls.Config{
+		Certificates: serverCert,
+		RootCAs:      pool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
 	}
-	theCert = append(theCert, certs)
-	return theCert, nil
-}
 
-//Have listener?
-//https://gist.github.com/spikebike/2232102
+	return config, nil
+}
