@@ -12,10 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+.PHONY: coverage
+coverage: test
+	@echo "--> Opening coverage..."
+	@CGO_ENABLED=0 go tool cover -html=./coverage/c.out
+
 .PHONY: test
 test: vendor
 	@echo "--> Running tests..."
-	@CGO_ENABLED=0 go test -v --mod=vendor ./...
+	@CGO_ENABLED=0 go test -v --coverprofile=./coverage/c.out --mod=vendor ./...
 
 .PHONY: vendor
 vendor:
