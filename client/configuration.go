@@ -58,3 +58,27 @@ func (c *Configuration) Build() (*tls.Config, error) {
 
 	return config, nil
 }
+
+// WithAuthority sets the trusted certificate authority.
+func (c *Configuration) WithAuthority(authority string) *Configuration {
+	c.Authorities = []string{authority}
+	return c
+}
+
+// WithCertificate sets the client certificate used for mTLS connections.
+func (c *Configuration) WithCertificate(certificate string) *Configuration {
+	c.Certificate = certificate
+	return c
+}
+
+// WithKey sets the client key used for mTLS connections.
+func (c *Configuration) WithKey(key string) *Configuration {
+	c.Key = key
+	return c
+}
+
+// WithServer sets the server name used for verification.
+func (c *Configuration) WithServer(server string) *Configuration {
+	c.Server = server
+	return c
+}
