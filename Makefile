@@ -15,14 +15,14 @@
 .PHONY: coverage
 coverage: test
 	@echo "--> Opening coverage..."
-	@CGO_ENABLED=0 go tool cover -html=./coverage/c.out
+	@CGO_ENABLED=0 GO111MODULE=on go tool cover -html=./coverage/c.out
 
 .PHONY: test
 test: vendor
 	@echo "--> Running tests..."
-	@CGO_ENABLED=0 go test -v --coverprofile=./coverage/c.out --mod=vendor ./...
+	@CGO_ENABLED=0 GO111MODULE=on go test -v --coverprofile=./coverage/c.out --mod=vendor ./...
 
 .PHONY: vendor
 vendor:
 	@echo "--> Vendoring dependencies..."
-	@go mod vendor
+	@CGO_ENABLED=0 GO111MODULE=on go mod vendor
