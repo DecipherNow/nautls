@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package client contains structures and functions for building HTTP(S) clients.
-//
-// Deprecated: The structures and functions in the nautls/client package have been deprecated in favor of the
-// implementations found within the nautls/clients package.
-package client
+package clients
 
 import (
 	"crypto/tls"
@@ -27,23 +23,23 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Client represents a client configuration (with or without TLS).
-type Client struct {
+// ClientConfig provides a serializable representation of an http.Client structure.
+type ClientConfig struct {
 
-	// Host defines the hostname or address of the client.
+	// Host defines the hostname or address of the servert to which the client connects.
 	Host string `json:"host" mapstructure:"host" yaml:"host"`
 
-	// Port defines the port for the client.
+	// Port defines the port on the server to which the client connects.
 	Port int `json:"port" mapstructure:"port" yaml:"port"`
 
-	// TLS defines the TLS configuration for the client.
-	TLS Configuration `json:"tls" mapstructure:"tls" yaml:"tls"`
+	// Security defines the TLS configuration used by the client.
+	Security SecurityConfig `json:"security" mapstructure:"security" yaml:"security"`
 }
 
-// Build creates an http.Client from a Client.
-func (c *Client) Build() (*http.Client, error) {
+// Build creates an http.Client from the ClientConfig instance.
+func (c *ClientConfig) Build() (*http.Client, error) {
 
-	configuration, err := c.TLS.Build()
+	configuration, err := c.Security.Build()
 	if err != nil {
 		return nil, errors.Wrap(err, "error building tls configuration for client")
 	}
@@ -57,22 +53,4 @@ func (c *Client) Build() (*http.Client, error) {
 	}
 
 	return client, nil
-}
-
-// WithHost sets the hostname or address of the client.
-func (c *Client) WithHost(host string) *Client {
-	c.Host = host
-	return c
-}
-
-// WithPort sets the port of the client.
-func (c *Client) WithPort(port int) *Client {
-	c.Port = port
-	return c
-}
-
-// WithTLS sets the TLS configuration of the client.
-func (c *Client) WithTLS(tls Configuration) *Client {
-	c.TLS = tls
-	return c
 }
