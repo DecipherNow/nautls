@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package nautls is a library of utility functions and structs that make working with Transport Layer Security (TLS) in
-// Go a bit more intuitive and flexible.
-package nautls
+// Package server contains structures and functions for building HTTP(S) servers.
+//
+// Deprecated: The structures and functions in the nautls/server package have been deprecated in favor of the
+// implementations found within the nautls/servers package.
+package server

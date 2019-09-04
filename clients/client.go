@@ -12,6 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package nautls is a library of utility functions and structs that make working with Transport Layer Security (TLS) in
-// Go a bit more intuitive and flexible.
-package nautls
+// Package clients provides structures and functions for configuring TLS enabled HTTP clients.
+package clients
