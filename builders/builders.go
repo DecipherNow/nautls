@@ -34,18 +34,13 @@ func BuildCertificatePool(certificateURLs []string) (*x509.CertPool, error) {
 	pool := x509.NewCertPool()
 	for _, certificate := range certificateURLs {
 
-		resource, err := url.Parse(certificate)
+		bytes, err := readResource(certificate)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error parsing url from %s", certificate)
-		}
-
-		bytes, err := urls.ReadFile(resource)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error reading certificate from %s", certificate)
+			return nil, errors.Wrapf(err, "error reading certificate [%s]", certificate)
 		}
 
 		if !pool.AppendCertsFromPEM(bytes) {
-			return nil, errors.Wrapf(err, "error loading certificate from %s", certificate)
+			return nil, errors.Wrapf(err, "error appending certificate from [%s]", certificate)
 		}
 	}
 
@@ -61,30 +56,42 @@ func BuildCertificates(certificateURL string, keyURL string) ([]tls.Certificate,
 		return certificates, nil
 	}
 
-	certificateResource, err := url.Parse(certificateURL)
+	certificate, err := readKeyPair(certificateURL, keyURL)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error parsing url from %s", certificateURL)
-	}
-
-	certificateBytes, err := urls.ReadFile(certificateResource)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error reading certificate from %s", certificateURL)
-	}
-
-	keyResource, err := url.Parse(keyURL)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error parsing url from %s", keyURL)
-	}
-
-	keyBytes, err := urls.ReadFile(keyResource)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error reading key from %s", keyURL)
-	}
-
-	certificate, err := tls.X509KeyPair(certificateBytes, keyBytes)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error loading certificate pair from %s and %s", certificateURL, keyURL)
+		return nil, errors.Wrapf(err, "error loading key pair from [%s] and [%s]", certificateURL, keyURL)
 	}
 
 	return append(certificates, certificate), nil
+}
+
+// readKeyPair reads an X.509 key pair from a certificate and key URL.
+func readKeyPair(certificateURL string, keyURL string) (tls.Certificate, error) {
+
+	certificateBytes, err := readResource(certificateURL)
+	if err != nil {
+		return tls.Certificate{}, errors.Wrapf(err, "error reading certificate [%s]", certificateURL)
+	}
+
+	keyBytes, err := readResource(keyURL)
+	if err != nil {
+		return tls.Certificate{}, errors.Wrapf(err, "error reading key [%s]", keyURL)
+	}
+
+	return tls.X509KeyPair(certificateBytes, keyBytes)
+}
+
+// readResource reads a resource URL into a byte array.
+func readResource(resource string) ([]byte, error) {
+
+	resourceURL, err := url.Parse(resource)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error parsing url from [%s]", resource)
+	}
+
+	resourceBytes, err := urls.ReadFile(resourceURL)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error reading resource from [%s]", resourceURL)
+	}
+
+	return resourceBytes, nil
 }

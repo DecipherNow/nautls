@@ -16,7 +16,6 @@ package getters
 
 import (
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -49,19 +48,12 @@ func (b *Base64) GetFile(destination string, source *url.URL) error {
 
 	data, err := base64.StdEncoding.DecodeString(regex.ReplaceAllString(path, ""))
 	if err != nil {
-		fmt.Println(path)
-		fmt.Println(err.Error())
 		return errors.Wrapf(err, "error decoding value [%s]", path)
 	}
 
-	err = os.MkdirAll(filepath.Dir(destination), 0755)
+	err = writeFile(destination, data)
 	if err != nil {
-		return errors.Wrapf(err, "error creating parent directories [%s]", destination)
-	}
-
-	err = ioutil.WriteFile(destination, data, os.FileMode(0666))
-	if err != nil {
-		return errors.Wrapf(err, "error writing data to file [%s]", destination)
+		return errors.Wrapf(err, "error writing file [%s]", path)
 	}
 
 	return nil
@@ -74,3 +66,17 @@ func (b *Base64) ClientMode(_ *url.URL) (getter.ClientMode, error) {
 
 // SetClient sets the client for this getter.  This is a noop for this getter.
 func (b *Base64) SetClient(_ *getter.Client) {}
+
+// writeFile writes data to a provided path ensuring that the directories exist if not present.
+func writeFile(path string, data []byte) error {
+
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return errors.Wrapf(err, "error creating parent directories [%s]", path)
+	}
+
+	if err := ioutil.WriteFile(path, data, os.FileMode(0666)); err != nil {
+		return errors.Wrapf(err, "error writing data to file [%s]", path)
+	}
+
+	return nil
+}
