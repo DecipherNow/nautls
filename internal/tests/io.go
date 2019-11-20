@@ -17,8 +17,18 @@ package tests
 import (
 	"crypto/tls"
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 )
+
+// MustAbsolutePath returns the absolute path to a file or fails the provided test.
+func MustAbsolutePath(path string, test *testing.T) string {
+	p, err := filepath.Abs(path)
+	if err != nil {
+		test.Errorf("failed to resolve absolute path [%s]", path)
+	}
+	return p
+}
 
 // MustRead reads the content of a file or fails the provided test.
 func MustRead(path string, test *testing.T) []byte {
