@@ -15,13 +15,16 @@
 package identities
 
 import (
+	"crypto/md5"
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"fmt"
 	"math/big"
 	"testing"
 	"time"
 
+	"github.com/deciphernow/nautls/internal/tests"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -150,6 +153,59 @@ func TestIdentity(t *testing.T) {
 
 			Convey("it returns a nil error", func() {
 				So(err, ShouldBeNil)
+			})
+		})
+
+		Convey(".Expiration is invoked", func() {
+
+			now := time.Now()
+			expiration := time.Date(now.Year()+1, now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+			identity, err := Self(Template{
+				NotAfter:     expiration,
+				SerialNumber: big.NewInt(time.Now().Unix()),
+			})
+
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+
+			Convey("it returns the expected expiration", func() {
+				So(identity.Expiration(), ShouldEqual, expiration)
+			})
+		})
+
+		Convey(".Fingerprint is invoked", func() {
+
+			identity, _ := Self(Template{
+				SerialNumber: big.NewInt(time.Now().Unix()),
+			})
+
+			Convey("it returns the expected hash", func() {
+				So(identity.Fingerprint(md5.New()), ShouldResemble, md5.New().Sum(identity.certificate.Raw))
+			})
+		})
+
+		Convey(".Subject is invoked", func() {
+
+			subject := pkix.Name{
+				CommonName:         tests.MustGenerateString(t),
+				Country:            tests.MustGenerateStrings(t),
+				Locality:           tests.MustGenerateStrings(t),
+				Organization:       tests.MustGenerateStrings(t),
+				OrganizationalUnit: tests.MustGenerateStrings(t),
+				Province:           tests.MustGenerateStrings(t),
+				PostalCode:         tests.MustGenerateStrings(t),
+				StreetAddress:      tests.MustGenerateStrings(t),
+			}
+
+			identity, _ := Self(Template{
+				SerialNumber: big.NewInt(time.Now().Unix()),
+				Subject:      subject,
+			})
+
+			Convey("it returns the expected subject", func() {
+				So(identity.Subject().String(), ShouldEqual, subject.String())
 			})
 		})
 	})

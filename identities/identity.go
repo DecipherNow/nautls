@@ -18,6 +18,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"crypto/x509/pkix"
+	"hash"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -54,6 +57,16 @@ func Self(template Template) (*Identity, error) {
 	return NewIdentity([]*x509.Certificate{}, certificate, key), nil
 }
 
+// Expiration returns the expiration date of this identity.
+func (i *Identity) Expiration() time.Time {
+	return i.certificate.NotAfter
+}
+
+// Fingerprint returns the result of invoking hash.Sum with the raw content of this identities certificate.
+func (i *Identity) Fingerprint(hasher hash.Hash) []byte {
+	return hasher.Sum(i.certificate.Raw)
+}
+
 // Issue returns a new identity signed by this identity based upon a template.
 func (i *Identity) Issue(template Template) (*Identity, error) {
 
@@ -68,6 +81,11 @@ func (i *Identity) Issue(template Template) (*Identity, error) {
 	}
 
 	return NewIdentity(append(i.authorities, i.certificate), certificate, key), nil
+}
+
+// Subject returns the subject of this identity.
+func (i *Identity) Subject() pkix.Name {
+	return i.certificate.Subject
 }
 
 // sign returns a signed certificate for the provided template.
