@@ -39,15 +39,15 @@ func TestIdentity(t *testing.T) {
 			Convey("it returns an instance", func() {
 
 				Convey("with the correct authorities", func() {
-					So(identity.authorities, ShouldResemble, authorities)
+					So(identity.Authorities, ShouldResemble, authorities)
 				})
 
 				Convey("with the correct certificate", func() {
-					So(identity.certificate, ShouldEqual, certificate)
+					So(identity.Certificate, ShouldEqual, certificate)
 				})
 
 				Convey("with the correct key", func() {
-					So(identity.key, ShouldEqual, key)
+					So(identity.Key, ShouldEqual, key)
 				})
 			})
 		})
