@@ -89,7 +89,7 @@ func main() {
 	client, _ := clients.NewClientBuilder().
 		WithHost("localhost").
 		WithPort("443").
-		WithSecurity(security).
+		WithTLS(security).
 		Build()
 
 }

@@ -34,14 +34,24 @@ type ClientConfig struct {
 
 	// Security defines the TLS configuration used by the client.
 	Security SecurityConfig `json:"security" mapstructure:"security" yaml:"security"`
+
+	// config is the tls config passed by ClientBuilder.WithTLS.
+	config *tls.Config
 }
 
 // Build creates an http.Client from the ClientConfig instance.
 func (c *ClientConfig) Build() (*http.Client, error) {
 
-	configuration, err := c.Security.Build()
-	if err != nil {
-		return nil, errors.Wrap(err, "error building tls configuration for client")
+	var configuration *tls.Config
+	var err error
+
+	if c.config != (&tls.Config{}) {
+		configuration = c.config
+	} else {
+		configuration, err = c.Security.Build()
+		if err != nil {
+			return nil, errors.Wrap(err, "error building tls configuration for client")
+		}
 	}
 
 	client := &http.Client{
