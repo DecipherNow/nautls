@@ -39,17 +39,6 @@ func TestIdentity(t *testing.T) {
 			Convey("it returns an instance", func() {
 
 				Convey("with the correct authorities", func() {
-<<<<<<< HEAD
-					So(identity.authorities, ShouldResemble, authorities)
-				})
-
-				Convey("with the correct certificate", func() {
-					So(identity.certificate, ShouldEqual, certificate)
-				})
-
-				Convey("with the correct key", func() {
-					So(identity.key, ShouldEqual, key)
-=======
 					So(identity.Authorities, ShouldResemble, authorities)
 				})
 
@@ -59,7 +48,6 @@ func TestIdentity(t *testing.T) {
 
 				Convey("with the correct key", func() {
 					So(identity.Key, ShouldEqual, key)
->>>>>>> f6d8f1ebbfb4d123ec42f777d95be247af21e671
 				})
 			})
 		})

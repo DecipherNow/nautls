@@ -24,29 +24,17 @@ import (
 
 // Identity represents an X.509 identity.
 type Identity struct {
-<<<<<<< HEAD
-	authorities []*x509.Certificate
-	certificate *x509.Certificate
-	key         *rsa.PrivateKey
-=======
 	Authorities []*x509.Certificate
 	Certificate *x509.Certificate
 	Key         *rsa.PrivateKey
->>>>>>> f6d8f1ebbfb4d123ec42f777d95be247af21e671
 }
 
 // NewIdentity returns a new identity.
 func NewIdentity(authorities []*x509.Certificate, certificate *x509.Certificate, key *rsa.PrivateKey) *Identity {
 	return &Identity{
-<<<<<<< HEAD
-		authorities: authorities,
-		certificate: certificate,
-		key:         key,
-=======
 		Authorities: authorities,
 		Certificate: certificate,
 		Key:         key,
->>>>>>> f6d8f1ebbfb4d123ec42f777d95be247af21e671
 	}
 }
 
@@ -79,11 +67,7 @@ func (i *Identity) Issue(template Template) (*Identity, error) {
 		return nil, errors.Wrapf(err, "error signing certificate for [%s]", template.Subject.CommonName)
 	}
 
-<<<<<<< HEAD
-	return NewIdentity(append(i.authorities, i.certificate), certificate, key), nil
-=======
 	return NewIdentity(append(i.Authorities, i.Certificate), certificate, key), nil
->>>>>>> f6d8f1ebbfb4d123ec42f777d95be247af21e671
 }
 
 // sign returns a signed certificate for the provided template.

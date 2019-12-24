@@ -15,12 +15,17 @@
 package clients
 
 import (
+	"crypto/tls"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // ClientBuilder provides an builder for http.Client instances.
 type ClientBuilder struct {
-	config ClientConfig
+	config    ClientConfig
+	tlsConfig *tls.Config
+	Security  SecurityConfig `json:"security" mapstructure:"security" yaml:"security"`
 }
 
 // NewClientBuilder intializes a new instance of the ClientBuilder structure.
@@ -30,7 +35,20 @@ func NewClientBuilder() *ClientBuilder {
 
 // Build creates an http.Client from the ClientBuilder.
 func (b *ClientBuilder) Build() (*http.Client, error) {
-	return b.config.Build()
+	clientBuild, err := b.config.Build()
+	if err != nil {
+		return nil, errors.Wrap(err, "error building client")
+	}
+
+	//Set order of precedence (tls being most important)
+
+	if b.Security.Build() != nil {
+		//Call withSecurityBuilder
+	}
+
+	if b.tlsConfig != nil {
+		//call withTLS
+	}
 }
 
 // WithHost sets the hostname or address of the client.
@@ -48,5 +66,17 @@ func (b *ClientBuilder) WithPort(port int) *ClientBuilder {
 // WithSecurity sets the TLS configuration of the client.
 func (b *ClientBuilder) WithSecurity(security SecurityConfig) *ClientBuilder {
 	b.config.Security = security
+	return b
+}
+
+// WithSecurityBuilder provides a builder for tls.Config instances used by the client
+func (b *ClientBuilder) WithSecurityBuilder(builder *SecurityBuilder) *ClientBuilder {
+	b.config.Security = builder.config
+	return b
+}
+
+// WithTLS sets the tls configuration of the client
+func (b *ClientBuilder) WithTLS(config *tls.Config) *ClientBuilder {
+	b.tlsConfig = config
 	return b
 }

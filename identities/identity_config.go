@@ -50,15 +50,7 @@ func (c *IdentityConfig) Build() (*Identity, error) {
 		return nil, errors.Wrapf(err, "error loading key from [%s]", c.Key)
 	}
 
-<<<<<<< HEAD
-	identity := &Identity{
-		authorities: authorities,
-		certificate: certificate,
-		key:         key,
-	}
-=======
 	identity := NewIdentity(authorities, certificate, key)
->>>>>>> f6d8f1ebbfb4d123ec42f777d95be247af21e671
 
 	return identity, nil
 }
