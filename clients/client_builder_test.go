@@ -51,15 +51,40 @@ func TestClientBuilder(t *testing.T) {
 			})
 		})
 
-		Convey(".WithTLS is invoked", func() {
+		Convey(".WithSecurity is invoked", func() {
 
 			security := tests.MustGenerate(reflect.TypeOf(SecurityConfig{}), t).Interface().(SecurityConfig)
-
 			builder.WithSecurity(security)
 
 			Convey("it sets the tls", func() {
 				So(builder.config.Security, ShouldResemble, security)
 			})
+		})
+
+		Convey(".WithSecurityBuilder is invoked", func() {
+
+			securityConfig := tests.MustGenerate(reflect.TypeOf(SecurityConfig{}), t).Interface().(SecurityConfig)
+			security := SecurityBuilder{securityConfig}
+
+			builder.WithSecurityBuilder(&security)
+
+			Convey("it sets the tls", func() {
+				So(builder.config.Security, ShouldResemble, security.config)
+			})
+		})
+
+		Convey(".WithTLS is invoked", func() {
+
+			securityConfig := tests.MustGenerate(reflect.TypeOf(SecurityConfig{}), t).Interface().(SecurityConfig)
+			security := SecurityBuilder{securityConfig}
+			config, _ := security.Build()
+
+			builder.WithTLS(config)
+
+			Convey("it sets the tls", func() {
+				So(builder.config.config, ShouldResemble, config)
+			})
+
 		})
 
 		Convey(".Build is invoked", func() {

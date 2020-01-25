@@ -15,7 +15,12 @@
 package clients
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"net/http"
+
+	"github.com/deciphernow/acert/encoding"
 )
 
 // ClientBuilder provides an builder for http.Client instances.
@@ -48,5 +53,38 @@ func (b *ClientBuilder) WithPort(port int) *ClientBuilder {
 // WithSecurity sets the TLS configuration of the client.
 func (b *ClientBuilder) WithSecurity(security SecurityConfig) *ClientBuilder {
 	b.config.Security = security
+	return b
+}
+
+// WithSecurityBuilder sets the TLS configuration of the client from a SecurityBuilder.
+func (b *ClientBuilder) WithSecurityBuilder(builder *SecurityBuilder) *ClientBuilder {
+	b.config.Security = builder.config
+	return b
+}
+
+// WithTLS sets the TLS configuration of the client to a tls.Config. Takes precedence over WithSecurityBuilder.
+func (b *ClientBuilder) WithTLS(config *tls.Config) *ClientBuilder {
+	b.config.config = config
+
+	// parse each cert into an x509.Certificate so encoding can handle them
+	x509Certs := make([]*x509.Certificate, len(config.Certificates[0].Certificate))
+	var err error
+	for index, certificate := range config.Certificates[0].Certificate {
+		x509Certs[index], err = x509.ParseCertificate(certificate)
+		if err != nil {
+
+		}
+	}
+
+	// ? is the config.PrivateKey what needs to be converted into the SecurityConfig.Key?
+
+	// config.RootCAs is a x509.CertPool, needs to become SecurityConfig.Authorities
+	// ! x509.CertPool has no method to export the certs
+
+	b.config.Security = SecurityConfig{
+		Certificate: fmt.Sprintf("base64:///%s", encoding.ConfigEncodeCertificates(x509Certs)),
+		Server:      config.ServerName,
+	}
+
 	return b
 }
