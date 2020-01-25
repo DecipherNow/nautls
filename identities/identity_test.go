@@ -104,7 +104,7 @@ func TestIdentity(t *testing.T) {
 
 		Convey(".Issue is invoked", func() {
 
-			signer, _ := Self(Template{
+			root, _ := Self(Template{
 				BasicConstraintsValid: true,
 				ExtKeyUsage:           []x509.ExtKeyUsage{},
 				IsCA:                  true,
@@ -124,16 +124,16 @@ func TestIdentity(t *testing.T) {
 				},
 			})
 
-			identity, err := signer.Issue(Template{
+			intermediate, _ := root.Issue(Template{
 				BasicConstraintsValid: true,
-				ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-				IsCA:                  false,
-				KeyUsage:              x509.KeyUsageDigitalSignature,
+				ExtKeyUsage:           []x509.ExtKeyUsage{},
+				IsCA:                  true,
+				KeyUsage:              x509.KeyUsageCRLSign | x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
 				NotAfter:              time.Now().AddDate(10, 0, 0),
 				NotBefore:             time.Now(),
 				SerialNumber:          big.NewInt(time.Now().Unix()),
 				Subject: pkix.Name{
-					CommonName:         "NauTLS (Leaf)",
+					CommonName:         "NauTLS (Intermediate)",
 					Country:            []string{"US"},
 					Locality:           []string{"Alexandria"},
 					Organization:       []string{"Decipher Technology Studios"},
@@ -144,8 +144,41 @@ func TestIdentity(t *testing.T) {
 				},
 			})
 
-			Convey("it returns a non-nil identity", func() {
-				So(identity, ShouldNotBeNil)
+			identity, err := intermediate.Issue(Template{
+				BasicConstraintsValid: true,
+				ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+				IsCA:                  false,
+				KeyUsage:              x509.KeyUsageDigitalSignature,
+				NotAfter:              time.Now().AddDate(10, 0, 0),
+				NotBefore:             time.Now(),
+				SerialNumber:          big.NewInt(time.Now().Unix()),
+				Subject: pkix.Name{
+					CommonName:         "nautls.com",
+					Country:            []string{"US"},
+					Locality:           []string{"Alexandria"},
+					Organization:       []string{"Decipher Technology Studios"},
+					OrganizationalUnit: []string{"Engineering"},
+					Province:           []string{"Virginia"},
+					PostalCode:         []string{"22314"},
+					StreetAddress:      []string{"110 S. Union St, Floor 2"},
+				},
+			})
+
+			roots := x509.NewCertPool()
+			roots.AddCert(root.Certificate)
+
+			intermediates := x509.NewCertPool()
+			intermediates.AddCert(intermediate.Certificate)
+
+			options := x509.VerifyOptions{
+				DNSName:       "nautls.com",
+				Intermediates: intermediates,
+				Roots:         roots,
+			}
+
+			Convey("it returns a verifiable identity", func() {
+				_, err := identity.Certificate.Verify(options)
+				So(err, ShouldBeNil)
 			})
 
 			Convey("it returns a nil error", func() {

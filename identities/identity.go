@@ -62,12 +62,12 @@ func (i *Identity) Issue(template Template) (*Identity, error) {
 		return nil, errors.Wrapf(err, "error generating private key for [%s]", template.Subject.CommonName)
 	}
 
-	certificate, err := sign(template.certificate(), template.certificate(), &key.PublicKey, key)
+	certificate, err := sign(template.certificate(), i.Certificate, &key.PublicKey, i.Key)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error signing certificate for [%s]", template.Subject.CommonName)
 	}
 
-	return NewIdentity(append(i.Authorities, i.Certificate), certificate, key), nil
+	return NewIdentity(append([]*x509.Certificate{i.Certificate}, i.Authorities...), certificate, key), nil
 }
 
 // sign returns a signed certificate for the provided template.
