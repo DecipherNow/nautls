@@ -26,6 +26,26 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var template = Template{
+	BasicConstraintsValid: true,
+	ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+	IsCA:                  false,
+	KeyUsage:              x509.KeyUsageDigitalSignature,
+	NotAfter:              time.Now().AddDate(10, 0, 0),
+	NotBefore:             time.Now(),
+	SerialNumber:          big.NewInt(time.Now().Unix()),
+	Subject: pkix.Name{
+		CommonName:         "NauTLS (Leaf)",
+		Country:            []string{"US"},
+		Locality:           []string{"Alexandria"},
+		Organization:       []string{"Decipher Technology Studios"},
+		OrganizationalUnit: []string{"Engineering"},
+		Province:           []string{"Virginia"},
+		PostalCode:         []string{"22314"},
+		StreetAddress:      []string{"110 S. Union St, Floor 2"},
+	},
+}
+
 func TestIdentity(t *testing.T) {
 
 	Convey("When IdentityConfig", t, func() {
@@ -70,26 +90,6 @@ func TestIdentity(t *testing.T) {
 			})
 
 			Convey("with an valid template", func() {
-
-				template := Template{
-					BasicConstraintsValid: true,
-					ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-					IsCA:                  false,
-					KeyUsage:              x509.KeyUsageDigitalSignature,
-					NotAfter:              time.Now().AddDate(10, 0, 0),
-					NotBefore:             time.Now(),
-					SerialNumber:          big.NewInt(time.Now().Unix()),
-					Subject: pkix.Name{
-						CommonName:         "NauTLS (Leaf)",
-						Country:            []string{"US"},
-						Locality:           []string{"Alexandria"},
-						Organization:       []string{"Decipher Technology Studios"},
-						OrganizationalUnit: []string{"Engineering"},
-						Province:           []string{"Virginia"},
-						PostalCode:         []string{"22314"},
-						StreetAddress:      []string{"110 S. Union St, Floor 2"},
-					},
-				}
 
 				identity, err := Self(template)
 
@@ -188,12 +188,9 @@ func TestIdentity(t *testing.T) {
 		})
 
 		Convey(".PEM is invoked", func() {
-			authorities := []*x509.Certificate{&x509.Certificate{}}
-			certificate := &x509.Certificate{}
-			key := &rsa.PrivateKey{}
-			identity := NewIdentity(authorities, certificate, key)
+			identity, _ := Self(template)
 
-			certPEM, _, err := identity.PEM()
+			certPEM, keyPEM, err := identity.PEM()
 
 			Convey("it should return a nil error", func() {
 				So(err, ShouldBeNil)
@@ -204,7 +201,15 @@ func TestIdentity(t *testing.T) {
 				cert, err := x509.ParseCertificate(certBlock.Bytes)
 
 				So(err, ShouldBeNil)
-				So(cert.PublicKey, ShouldEqual, key.PublicKey)
+				So(cert.PublicKey.(*rsa.PublicKey), ShouldResemble, &identity.Key.PublicKey)
+			})
+
+			Convey("it should return a valid PEM encoded private key", func() {
+				key, _ := pem.Decode(keyPEM)
+				privKey, err := x509.ParsePKCS1PrivateKey(key.Bytes)
+
+				So(err, ShouldBeNil)
+				So(*privKey, ShouldResemble, *identity.Key)
 			})
 		})
 	})
