@@ -15,9 +15,11 @@
 package identities
 
 import (
+	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
 
 	"github.com/pkg/errors"
 )
@@ -68,6 +70,29 @@ func (i *Identity) Issue(template Template) (*Identity, error) {
 	}
 
 	return NewIdentity(append([]*x509.Certificate{i.Certificate}, i.Authorities...), certificate, key), nil
+}
+
+// PEM pem encodes the identity's certificate and private key.
+func (i *Identity) PEM() ([]byte, []byte, error) {
+	var cert bytes.Buffer
+	err := pem.Encode(&cert, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: i.Certificate.Raw,
+	})
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error pem encoding certificate")
+	}
+
+	var key bytes.Buffer
+	err = pem.Encode(&key, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(i.Key),
+	})
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error pem encoding private key")
+	}
+
+	return cert.Bytes(), key.Bytes(), nil
 }
 
 // sign returns a signed certificate for the provided template.
