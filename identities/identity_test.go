@@ -25,6 +25,26 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var template = Template{
+	BasicConstraintsValid: true,
+	ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+	IsCA:                  false,
+	KeyUsage:              x509.KeyUsageDigitalSignature,
+	NotAfter:              time.Now().AddDate(10, 0, 0),
+	NotBefore:             time.Now(),
+	SerialNumber:          big.NewInt(time.Now().Unix()),
+	Subject: pkix.Name{
+		CommonName:         "NauTLS (Leaf)",
+		Country:            []string{"US"},
+		Locality:           []string{"Alexandria"},
+		Organization:       []string{"Decipher Technology Studios"},
+		OrganizationalUnit: []string{"Engineering"},
+		Province:           []string{"Virginia"},
+		PostalCode:         []string{"22314"},
+		StreetAddress:      []string{"110 S. Union St, Floor 2"},
+	},
+}
+
 func TestIdentity(t *testing.T) {
 
 	Convey("When IdentityConfig", t, func() {
@@ -69,26 +89,6 @@ func TestIdentity(t *testing.T) {
 			})
 
 			Convey("with an valid template", func() {
-
-				template := Template{
-					BasicConstraintsValid: true,
-					ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-					IsCA:                  false,
-					KeyUsage:              x509.KeyUsageDigitalSignature,
-					NotAfter:              time.Now().AddDate(10, 0, 0),
-					NotBefore:             time.Now(),
-					SerialNumber:          big.NewInt(time.Now().Unix()),
-					Subject: pkix.Name{
-						CommonName:         "NauTLS (Leaf)",
-						Country:            []string{"US"},
-						Locality:           []string{"Alexandria"},
-						Organization:       []string{"Decipher Technology Studios"},
-						OrganizationalUnit: []string{"Engineering"},
-						Province:           []string{"Virginia"},
-						PostalCode:         []string{"22314"},
-						StreetAddress:      []string{"110 S. Union St, Floor 2"},
-					},
-				}
 
 				identity, err := Self(template)
 
