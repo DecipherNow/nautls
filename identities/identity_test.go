@@ -18,7 +18,6 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"encoding/pem"
 	"math/big"
 	"testing"
 	"time"
@@ -184,32 +183,6 @@ func TestIdentity(t *testing.T) {
 
 			Convey("it returns a nil error", func() {
 				So(err, ShouldBeNil)
-			})
-		})
-
-		Convey(".PEM is invoked", func() {
-			identity, _ := Self(template)
-
-			certPEM, keyPEM, err := identity.PEM()
-
-			Convey("it should return a nil error", func() {
-				So(err, ShouldBeNil)
-			})
-
-			Convey("it should return a valid PEM encoded cert", func() {
-				certBlock, _ := pem.Decode(certPEM)
-				cert, err := x509.ParseCertificate(certBlock.Bytes)
-
-				So(err, ShouldBeNil)
-				So(cert.PublicKey.(*rsa.PublicKey), ShouldResemble, &identity.Key.PublicKey)
-			})
-
-			Convey("it should return a valid PEM encoded private key", func() {
-				key, _ := pem.Decode(keyPEM)
-				privKey, err := x509.ParsePKCS1PrivateKey(key.Bytes)
-
-				So(err, ShouldBeNil)
-				So(*privKey, ShouldResemble, *identity.Key)
 			})
 		})
 	})
